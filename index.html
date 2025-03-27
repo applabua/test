@@ -9,10 +9,7 @@
   <!-- Підключення шрифта Montserrat -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link 
-    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
-    rel="stylesheet"
-  >
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   
   <!-- OpenLayers CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@7.3.0/dist/ol.css">
@@ -408,7 +405,7 @@
       border-radius: 8px;
       margin-top: 10px;
     }
-
+    
     /* Окно для вводу імені та номера телефону */
     .modal-overlay#modalOverlayUserData {
     }
@@ -573,24 +570,10 @@
       <!-- Крок 1.5: обʼєм та довжина шлангу -->
       <div id="orderStep1_5">
         <h3>Який обʼєм вашої ємності в кубах?</h3>
-        <input 
-          type="range" 
-          id="capacityRange" 
-          min="1" 
-          max="25" 
-          value="1" 
-          oninput="document.getElementById('capacityValue').innerHTML = this.value + ' м&sup3;';"
-        >
+        <input type="range" id="capacityRange" min="1" max="25" value="1" oninput="document.getElementById('capacityValue').innerHTML = this.value + ' м&sup3;';">
         <div id="capacityValue" style="margin-bottom: 20px;">1 м&sup3;</div>
         <h3>Оберіть довжину шлангу в метрах</h3>
-        <input 
-          type="range" 
-          id="hoseRange" 
-          min="1" 
-          max="70" 
-          value="1" 
-          oninput="document.getElementById('hoseValue').innerHTML = this.value + ' м';"
-        >
+        <input type="range" id="hoseRange" min="1" max="70" value="1" oninput="document.getElementById('hoseValue').innerHTML = this.value + ' м';">
         <div id="hoseValue" style="margin-bottom: 20px;">1 м</div>
         <button class="btn" id="volumeNextBtn">Далі</button>
       </div>
@@ -617,24 +600,13 @@
       
       <p class="address-label" style="position: relative;">
         Або позначте місце подачі асенізатора на карті:
-        <img 
-          src="https://i.ibb.co/1fGhMSqD/2025-03-23-133319.png"
-          alt="Icon"
-          style="
-            position: absolute;
-            right: 6px; 
-            top: 0.5rem; 
-            height: 2.2rem;
-            filter: brightness(0) saturate(100%) invert(9%) sepia(49%) saturate(7437%) hue-rotate(197deg) brightness(85%) contrast(105%);
-          "
-        >
       </p>
       
       <div id="olMap"></div>
       
-      <!-- Додаткова кнопка для отримання геопозиції -->
-      <button class="btn" id="getGeoBtn" style="display:block;">Моя геопозиція</button>
-      <button class="btn" id="cancelLocationBtn" style="display:none;">Скасувати</button>
+      <!-- Кнопки с дополнительным отступом -->
+      <button class="btn" id="getGeoBtn" style="display:block; margin-bottom:10px;">Моя геопозиція</button>
+      <button class="btn" id="cancelLocationBtn" style="display:none; margin-bottom:10px;">Скасувати</button>
       <button class="btn" id="confirmLocationBtn" style="display:block;">Підтвердити</button>
       
       <div id="mapLoader">
@@ -841,7 +813,7 @@
         }
       });
       
-      // Обробник для кнопки "Моя геопозиція" з повторною спробою
+      // Обробник для кнопки "Моя геопозиція"
       document.getElementById('getGeoBtn').addEventListener('click', () => {
         requestUserLocation();
       });
@@ -856,7 +828,6 @@
       
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          // Успішно отримано координати
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
           if(map) {
@@ -881,7 +852,6 @@
         },
         (error) => {
           if (error.code === error.PERMISSION_DENIED) {
-            // Якщо користувач відмовився, пропонуємо ще одну спробу
             if (confirm("Ви відхилили доступ до геолокації. Спробувати ще раз?")) {
               requestUserLocation();
             } else {
@@ -964,16 +934,11 @@
         const btn = document.createElement('button');
         btn.className = 'btn';
         const btnText = service.title;
-        // Параметри іконок (необов'язково)
         let iconWidth = (index === 0) ? "45px" : (index === 4 ? "18px" : "30px");
         let iconMarginLeft = (index === 0) ? "25px" : (index === 4 ? "22px" : "30px");
         btn.innerHTML = `
           <span style="flex:1; text-align:left; white-space: nowrap;">${btnText}</span>
-          <img 
-            src="${serviceIcons[index]}" 
-            alt="icon" 
-            style="margin-left:${iconMarginLeft}; width:${iconWidth}; height:auto; vertical-align: middle; filter: brightness(0) invert(1);"
-          >
+          <img src="${serviceIcons[index]}" alt="icon" style="margin-left:${iconMarginLeft}; width:${iconWidth}; height:auto; vertical-align: middle; filter: brightness(0) invert(1);">
         `;
         btn.addEventListener('click', () => {
           selectedOrderServiceIndex = index;
@@ -1022,7 +987,6 @@
       if (!mapInitialized) {
         markerSource = new ol.source.Vector();
         const markerLayer = new ol.layer.Vector({ source: markerSource });
-        
         map = new ol.Map({
           target: 'olMap',
           layers: [
@@ -1034,7 +998,6 @@
             zoom: 6
           })
         });
-        
         // Ставимо маркер по кліку
         map.on('click', function(evt) {
           const coords = ol.proj.toLonLat(evt.coordinate);
@@ -1053,7 +1016,6 @@
           selectedCoordinates = { x: coords[0], y: coords[1] };
           document.getElementById('cancelLocationBtn').style.display = 'block';
         });
-        
         mapInitialized = true;
       }
     }
@@ -1092,25 +1054,21 @@
     
     /* Підтвердження адреси */
     function confirmMap() {
-      const address = document.getElementById('addressInput').value.trim();
+      // Якщо користувач не ввів адресу, встановлюємо значення "не вказано"
+      let address = document.getElementById('addressInput').value.trim();
       if(!address) {
-        alert("Будь ласка, введіть адресу!");
-        return;
+         address = "не вказано";
       }
       userAddress = address;
-      
       const loader = document.getElementById('loader');
       loader.style.display = 'flex';
       loader.style.background = 'rgba(255,255,255,0.8)';
-      
       setTimeout(() => {
           loader.style.display = 'none';
           loader.style.background = 'linear-gradient(135deg, #f0f9ff, #d0e8ff)';
-          
           closeModal('modalOverlayMap');
           document.getElementById('confirmLocationBtn').style.display = 'none';
           document.getElementById('cancelLocationBtn').style.display = 'none';
-          
           openModal('modalOverlayUserData');
       }, 2000);
     }
@@ -1164,17 +1122,13 @@
       }
       userName = nameInput.value.trim();
       userPhone = phoneInput.value.trim();
-      
       const loader = document.getElementById('loader');
       loader.style.display = 'flex';
       loader.style.background = 'rgba(255,255,255,0.8)';
-      
       setTimeout(() => {
           loader.style.display = 'none';
           loader.style.background = 'linear-gradient(135deg, #f0f9ff, #d0e8ff)';
-          
           closeModal('modalOverlayUserData');
-          
           // Формування повідомлення для Telegram
           let finalMsg = "Нове замовлення від Septic24:\n";
           finalMsg += "Область: " + selectedRegion + "\n";
@@ -1190,8 +1144,7 @@
              finalMsg += "Геолокація: " + selectedCoordinates.y.toFixed(5) + ", " + selectedCoordinates.x.toFixed(5) + "\n";
              finalMsg += "OpenStreetMap: https://www.openstreetmap.org/?mlat=" + selectedCoordinates.y + "&mlon=" + selectedCoordinates.x + "\n";
           }
-          
-          // Відправка замовлення в Telegram
+          // Відправка замовлення в Telegram та повідомлення WebApp (для оновлення замовлень)
           fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
               method: "POST",
               headers: {
@@ -1205,13 +1158,15 @@
           .then(response => response.json())
           .then(data => {
               console.log("Order sent to Telegram:", data);
+              if (window.Telegram.WebApp) {
+                  Telegram.WebApp.sendData("USER_ORDER");
+              }
               alert("Дякуємо, ваше замовлення сформовано, очікуйте на дзвінок!");
           })
           .catch(error => {
               console.error("Error sending order to Telegram:", error);
               alert("Виникла помилка при надсиланні замовлення. Спробуйте пізніше.");
           });
-          
           resetOrderModal();
       }, 2000);
     }
