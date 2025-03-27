@@ -400,7 +400,15 @@
       border: none;
       cursor: pointer;
     }
-    
+
+    /* Стилі для блоку з картою */
+    #olMap {
+      width: 100%;
+      height: 300px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
     /* Окно для вводу імені та номера телефону */
     .modal-overlay#modalOverlayUserData {
     }
@@ -458,14 +466,6 @@
         text-align: center !important;
         margin: 0 auto;
       }
-    }
-
-    /* Стилізація блоку карти */
-    #olMap {
-      width: 100%;
-      height: 300px;
-      border-radius: 8px;
-      margin-top: 10px;
     }
   </style>
 </head>
@@ -605,7 +605,7 @@
     </div>
   </div>
   
-  <!-- Окно карти з додатковою кнопкою "Моя геопозиція" -->
+  <!-- Окно карти -->
   <div class="modal-overlay" id="modalOverlayMap">
     <div class="modal" id="modalMap">
       <span class="modal-close" data-modal="modalOverlayMap">&times;</span>
@@ -841,39 +841,63 @@
         }
       });
       
-      // Обробник для кнопки "Моя геопозиція"
+      // Обробник для кнопки "Моя геопозиція" з повторною спробою
       document.getElementById('getGeoBtn').addEventListener('click', () => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition((position) => {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            if(map) {
-              map.getView().setCenter(ol.proj.fromLonLat([lon, lat]));
-              map.getView().setZoom(10);
-            }
-            if(markerSource) {
-              markerSource.clear();
-              const markerFeature = new ol.Feature({
-                geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat]))
-              });
-              markerFeature.setStyle(new ol.style.Style({
-                image: new ol.style.Icon({
-                  anchor: [0.5, 1],
-                  src: 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png',
-                  scale: 0.05
-                })
-              }));
-              markerSource.addFeature(markerFeature);
-              selectedCoordinates = { x: lon, y: lat };
-            }
-          }, (error) => {
-            alert("Не вдалося отримати геолокацію: " + error.message);
-          });
-        } else {
-          alert("Геолокація не підтримується вашим браузером.");
-        }
+        requestUserLocation();
       });
     });
+    
+    /* Функція для отримання геопозиції користувача */
+    function requestUserLocation() {
+      if (!navigator.geolocation) {
+        alert("Геолокація не підтримується вашим браузером.");
+        return;
+      }
+      
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          // Успішно отримано координати
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          if(map) {
+            map.getView().setCenter(ol.proj.fromLonLat([lon, lat]));
+            map.getView().setZoom(10);
+          }
+          if(markerSource) {
+            markerSource.clear();
+            const markerFeature = new ol.Feature({
+              geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat]))
+            });
+            markerFeature.setStyle(new ol.style.Style({
+              image: new ol.style.Icon({
+                anchor: [0.5, 1],
+                src: 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png',
+                scale: 0.05
+              })
+            }));
+            markerSource.addFeature(markerFeature);
+            selectedCoordinates = { x: lon, y: lat };
+          }
+        },
+        (error) => {
+          if (error.code === error.PERMISSION_DENIED) {
+            // Якщо користувач відмовився, пропонуємо ще одну спробу
+            if (confirm("Ви відхилили доступ до геолокації. Спробувати ще раз?")) {
+              requestUserLocation();
+            } else {
+              alert("Для відображення Вашої позиції, будь ласка, дозвольте геолокацію у налаштуваннях браузера.");
+            }
+          } else {
+            alert("Не вдалося отримати геолокацію: " + error.message);
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    }
     
     function animateElements() {
       document.getElementById('title').classList.add('animate');
@@ -1083,9 +1107,7 @@
           loader.style.display = 'none';
           loader.style.background = 'linear-gradient(135deg, #f0f9ff, #d0e8ff)';
           
-          // Закриваємо модальне вікно карти та переходимо до введення даних користувача
           closeModal('modalOverlayMap');
-          // Опційно можна не чистити markerSource, адже координати вже збережені у selectedCoordinates
           document.getElementById('confirmLocationBtn').style.display = 'none';
           document.getElementById('cancelLocationBtn').style.display = 'none';
           
