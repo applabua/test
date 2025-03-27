@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Septic24 – Послуги асенізатора в Україні</title>
+  <!-- Фіксація сторінки (заборона масштабування і скролла) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <!-- Підключення шрифта Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
+    rel="stylesheet"
+  >
+  
+  <!-- OpenLayers CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@7.3.0/dist/ol.css">
+  
+  <style>
+    /* Сховати атрибуцію OpenStreetMap */
+    .ol-attribution {
+      display: none !important;
+    }
+    
+    /* Відключаємо прокрутку головної сторінки */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #ffffff, #d0e8ff);
+      color: #002050;
+      transition: background 0.5s, color 0.5s;
+    }
+
+    /* Логотип на головній сторінці */
+    #mainLogo {
+      position: fixed;
+      top: 5px;
+      right: 10px;
+      z-index: 10000;
+    }
+    #mainLogo img {
+      width: 40px;
+      height: auto;
+      border-radius: 50%;
+      object-fit: cover;
+      background: transparent;
+    }
+    
+    /* Іконки месенджерів у лівому куті */
+    #socialIcons {
+      position: fixed;
+      top: 10px;
+      left: 15px;
+      z-index: 10000;
+      display: flex;
+      gap: 10px;
+    }
+    #socialIcons img {
+      width: 30px;
+      height: auto;
+      filter: invert(38%) sepia(100%) saturate(5000%) hue-rotate(180deg) brightness(85%) contrast(105%);
+    }
+    
+    /* Блок з номерами телефонів */
+    #phoneNumbers {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #phoneNumbers a {
+      margin: 2px 0;
+      text-decoration: none;
+      color: #002050;
+      font-weight: bold;
+      font-size: 0.8rem;
+    }
+    
+    /* Екран завантаження */
+    .loader {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(135deg, #f0f9ff, #d0e8ff);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      text-align: center;
+    }
+    .loader-logo-wrap {
+      position: relative;
+      width: 200px;
+      height: 200px;
+    }
+    .loader-logo-wrap::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      transform: translate(-50%, -50%);
+      border: 2px solid rgba(0, 96, 160, 0.2);
+      border-top: 2px solid #0060a0;
+      border-radius: 50%;
+      animation: ringSpin 2s linear infinite;
+    }
+    @keyframes ringSpin {
+      0%   { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    .loader-logo-wrap img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      z-index: 1;
+      box-shadow: 0 0 20px #80d0ff;
+    }
+    
+    /* Основний контейнер */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 120px 20px 20px 20px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .animate {
+      animation: fadeInUp 0.8s ease forwards;
+    }
+    @keyframes fadeInUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to   { transform: translateY(0);     opacity: 1; }
+    }
+    
+    /* Заголовок та опис */
+    #title {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    #mainImage {
+      display: block;
+      margin: 20px auto;
+      max-width: 250px;
+      width: 100%;
+      height: auto;
+    }
+    #description {
+      font-size: 1rem;
+      line-height: 1.4;
+      max-width: 700px;
+      margin: 0 10px;
+    }
+    #boldLine {
+      font-weight: 700;
+      font-size: 1rem;
+      margin: 10px 20px 0 20px;
+    }
+    
+    /* Кнопки головного меню */
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      margin-top: 20px;
+      width: 100%;
+      max-width: 300px;
+    }
+    .btn {
+      width: 100%;
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      text-decoration: none;
+      text-align: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      color: #fff;
+      background: #0060a0;
+      cursor: pointer;
+      border-radius: 5px;
+      border: none;
+      display: inline-flex; 
+      align-items: center; 
+      justify-content: center;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 5px #0060a0, 0 0 10px #0060a0;
+    }
+    .btn:active {
+      transform: scale(0.95);
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    }
+    #btnOrder {
+      box-shadow: 0 0 5px 1px #90EE90;
+    }
+    
+    /* Стилізація модальних вікон */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; 
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 99998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      background: rgba(0, 0, 0, 0.7);
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal {
+      position: relative;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 300px;
+      min-height: 400px;
+      width: 90%;
+      transform: translateY(-20px);
+      opacity: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+      text-align: left;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+      background: linear-gradient(135deg, #ffffff, #d0e8ff);
+      color: #002050;
+      border: 2px solid #0060a0;
+      box-shadow: 0 0 5px #0060a0, 0 0 10px #0060a0;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal.active {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .modal .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      font-size: 2rem;
+      line-height: 1;
+      color: #002050;
+    }
+    
+    /* Про нас */
+    #modalAbout {
+      max-width: 320px;
+      text-align: center;
+    }
+    
+    /* Слайдер (Послуги) */
+    .slider-container {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      margin-top: 10px;
+      min-height: 300px;
+      padding-bottom: 40px;
+    }
+    .slider {
+      display: flex;
+      transition: transform 0.3s ease;
+      height: 100%;
+    }
+    .service-card {
+      flex: 0 0 100%;
+      margin: 0;
+      border-radius: 6px;
+      padding: 15px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      min-height: 550px;
+      margin-top: 30px;
+    }
+    .service-card h3 {
+      margin: 0 0 10px 0;
+      font-weight: 700;
+    }
+    .service-card img {
+      max-width: 100%;
+      height: auto;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .service-card p {
+      font-size: 0.95rem;
+      margin: 2px 5px;
+      text-align: justify;
+      line-height: 1.2;
+    }
+    
+    /* Кнопки "Оберіть послугу" (Крок 1) */
+    #orderServicesButtons {
+      padding-left: 10px;
+    }
+    #orderServicesButtons .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      width: 100%;
+      min-height: 60px;
+      margin-bottom: 10px;
+      white-space: nowrap;
+    }
+    
+    /* Кнопки вибору областей (Крок 2) */
+    #regionButtons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+    #regionButtons .btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.85rem;
+      text-align: center;
+      white-space: nowrap;
+      min-height: 35px;
+      padding: 6px 8px;
+    }
+    
+    /* Додаткові стилі для Кроку 1.5 */
+    #orderStep1_5 {
+      display: none; 
+      text-align: center; 
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 50px;
+    }
+    
+    /* Стилі для range-інпутів */
+    #orderStep1_5 input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 80%;
+      margin: 0 auto;
+      height: 8px;
+      border-radius: 4px;
+      background: #ccc;
+      outline: none;
+      cursor: pointer;
+    }
+    #orderStep1_5 input[type="range"]:focus {
+      outline: none;
+    }
+    #orderStep1_5 input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px; 
+      height: 20px; 
+      border-radius: 50%;
+      background: #0060a0;
+      border: none;
+      cursor: pointer;
+      box-shadow: none;
+    }
+    #orderStep1_5 input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #0060a0;
+      border: none;
+      cursor: pointer;
+    }
+    
+    /* Окно для вводу імені та номера телефону */
+    .modal-overlay#modalOverlayUserData {
+    }
+    .modal-user-data {
+      position: relative;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 300px;
+      width: 90%;
+      min-height: 400px;
+      transform: translateY(-20px);
+      opacity: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+      text-align: left;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+      background: linear-gradient(135deg, #ffffff, #d0e8ff);
+      color: #002050;
+      border: 2px solid #0060a0;
+      box-shadow: 0 0 5px #0060a0, 0 0 10px #0060a0;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-user-data.active {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .modal-user-data label {
+      width: 80%;
+      margin: 10px auto;
+      text-align: left;
+      display: block;
+    }
+    .modal-user-data input {
+      width: 80%;
+      margin: 10px auto;
+      text-align: center;
+      display: block;
+    }
+    
+    /* Медіа-запити для адаптивності */
+    @media (max-width: 600px) {
+      #title { font-size: 1.5rem; }
+      #description { font-size: 0.9rem; }
+      .btn { font-size: 1rem; padding: 10px; }
+      .container { padding: 120px 10px 10px 10px; }
+      #orderStep1 {
+        align-items: center;
+        text-align: center;
+      }
+      #orderServicesButtons .btn span {
+        flex: unset;
+        text-align: center !important;
+        margin: 0 auto;
+      }
+    }
+
+    /* Стилізація блоку карти */
+    #olMap {
+      width: 100%;
+      height: 300px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Іконки месенджерів (Telegram та Viber) -->
+  <div id="socialIcons">
+    <a href="https://t.me/Septic24_ua"><img src="https://i.ibb.co/r24wtsvm/61-1.png" alt="Telegram"></a>
+    <a href="viber://chat?number=+380980099686"><img src="https://i.ibb.co/PvmNdLvN/62-1.png" alt="Viber"></a>
+  </div>
+
+  <!-- Блок з номерами телефонів -->
+  <div id="phoneNumbers">
+    <a href="tel:+380980099686">+38 (098) 0099-686</a>
+    <a href="tel:+380662960008">+38 (066) 296-0008</a>
+  </div>
+  
+  <!-- Логотип -->
+  <div id="mainLogo">
+    <a href="https://septic24.com.ua">
+      <img src="https://i.ibb.co/BH3bjrPP/IMG-9356.jpg" alt="Logo">
+    </a>
+  </div>
+  
+  <!-- Екран завантаження -->
+  <div class="loader" id="loader">
+    <div class="loader-logo-wrap">
+      <img src="https://i.ibb.co/3Q3LXDk/IMG-9356.png" alt="Loader Logo">
+    </div>
+  </div>
+  
+  <!-- Основний контейнер -->
+  <div class="container">
+    <h1 id="title">Послуги асенізатора по всій Україні</h1>
+    <img id="mainImage" src="https://i.ibb.co/211q15HY/2025-03-25-171453.png" alt="Decorative Image">
+    <p id="description">
+      Викачка вигребних ям, викачка сливних ям і каналізацій, відкачка септиків та туалетів.
+    </p>
+    <p id="boldLine">
+      Потрібен асенізатор?<br>
+      Один клік — і ми вже на виїзді!
+    </p>
+    
+    <!-- Кнопки головного меню -->
+    <div class="buttons">
+      <button class="btn" id="btnOrder">Замовити асенізатор</button>
+      <button class="btn" id="btnServices">Наші послуги</button>
+      <button class="btn" id="btnAbout">Про нас</button>
+    </div>
+  </div>
+  
+  <!-- Модальні вікна (Про нас) -->
+  <div class="modal-overlay" id="modalOverlayAbout">
+    <div class="modal" id="modalAbout">
+      <span class="modal-close" data-modal="modalOverlayAbout">&times;</span>
+      <h2>Про нас</h2>
+      <p style="text-align: justify;">
+        <strong>Septic24</strong> — це надійний сервіс виклику асенізатора по всій території України.
+        Ми надаємо професійні послуги з відкачування вигрібних ям, септиків, каналізацій та вуличних туалетів
+        у Києві, Дніпрі, Одесі та інших містах. Працюємо цілодобово, без вихідних, щоб забезпечити комфорт
+        і чистоту у вашому домі чи на підприємстві.
+      </p>
+      <p style="text-align: justify; margin-top: 10px;">
+        <strong>Наші переваги:</strong>
+      </p>
+      <ul style="padding-left: 20px; margin: 0; text-align: justify;">
+        <li><strong>Безкоштовна консультація:</strong> Менеджери допоможуть обрати оптимальний варіант.</li>
+        <li><strong>Зручне замовлення:</strong> Оформити можна по телефону або онлайн.</li>
+        <li><strong>Підбір спецтехніки:</strong> Враховуємо об’єм вашої вигрібної ями чи септика.</li>
+        <li><strong>Оперативність:</strong> Швидко реагуємо та виконуємо замовлення.</li>
+        <li><strong>Якість:</strong> Повне відкачування відходів.</li>
+        <li><strong>Прозорі ціни:</strong> Без прихованих платежів.</li>
+        <li><strong>Екологічно:</strong> Безпечне вивезення та утилізація.</li>
+      </ul>
+      <p style="text-align: justify; margin-top: 10px;">
+        Ми прагнемо бути вашим надійним помічником у вирішенні будь-яких питань, пов’язаних із вивозом стічних вод.
+      </p>
+    </div>
+  </div>
+  
+  <!-- Окно Наші послуги -->
+  <div class="modal-overlay" id="modalOverlayServices">
+    <div class="modal" id="modalServices">
+      <span class="modal-close" data-modal="modalOverlayServices">&times;</span>
+      <div id="servicesSliderContainer" class="slider-container">
+        <div id="servicesSlider" class="slider"></div>
+      </div>
+      <div style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 10px;">
+         <button id="prevServiceBtn" class="btn" style="width: 80px; height: 30px;">&#8592;</button>
+         <button id="nextServiceBtn" class="btn" style="width: 80px; height: 30px;">&#8594;</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Окно оформлення замовлення -->
+  <div class="modal-overlay" id="modalOverlayOrder">
+    <div class="modal" id="modalOrder">
+      <span class="modal-close" data-modal="modalOverlayOrder">&times;</span>
+      
+      <!-- Крок 1: вибір послуги -->
+      <div id="orderStep1">
+        <h2>Оберіть послугу:</h2>
+        <div id="orderServicesButtons" class="buttons" style="max-width: 300px;"></div>
+      </div>
+      
+      <!-- Крок 1.5: обʼєм та довжина шлангу -->
+      <div id="orderStep1_5">
+        <h3>Який обʼєм вашої ємності в кубах?</h3>
+        <input 
+          type="range" 
+          id="capacityRange" 
+          min="1" 
+          max="25" 
+          value="1" 
+          oninput="document.getElementById('capacityValue').innerHTML = this.value + ' м&sup3;';"
+        >
+        <div id="capacityValue" style="margin-bottom: 20px;">1 м&sup3;</div>
+        <h3>Оберіть довжину шлангу в метрах</h3>
+        <input 
+          type="range" 
+          id="hoseRange" 
+          min="1" 
+          max="70" 
+          value="1" 
+          oninput="document.getElementById('hoseValue').innerHTML = this.value + ' м';"
+        >
+        <div id="hoseValue" style="margin-bottom: 20px;">1 м</div>
+        <button class="btn" id="volumeNextBtn">Далі</button>
+      </div>
+      
+      <!-- Крок 2: вибір області -->
+      <div id="orderStep2" style="display: none; position: relative;">
+        <div id="orderStep2Header" style="display: flex; justify-content: center; align-items: center; padding: 5px 0; margin-top: 0;">
+          <h3 style="margin: 0; font-size: 1rem;">Оберіть область:</h3>
+        </div>
+        <div id="regionButtons"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Окно карти з додатковою кнопкою "Моя геопозиція" -->
+  <div class="modal-overlay" id="modalOverlayMap">
+    <div class="modal" id="modalMap">
+      <span class="modal-close" data-modal="modalOverlayMap">&times;</span>
+      <p class="address-label">Вкажіть вашу адресу:</p>
+      <div class="address-search-wrap">
+        <input type="text" id="addressInput" placeholder="( Місто , вулиця , номер будинку )">
+        <button id="searchAddressBtn">Пошук</button>
+      </div>
+      
+      <p class="address-label" style="position: relative;">
+        Або позначте місце подачі асенізатора на карті:
+        <img 
+          src="https://i.ibb.co/1fGhMSqD/2025-03-23-133319.png"
+          alt="Icon"
+          style="
+            position: absolute;
+            right: 6px; 
+            top: 0.5rem; 
+            height: 2.2rem;
+            filter: brightness(0) saturate(100%) invert(9%) sepia(49%) saturate(7437%) hue-rotate(197deg) brightness(85%) contrast(105%);
+          "
+        >
+      </p>
+      
+      <div id="olMap"></div>
+      
+      <!-- Додаткова кнопка для отримання геопозиції -->
+      <button class="btn" id="getGeoBtn" style="display:block;">Моя геопозиція</button>
+      <button class="btn" id="cancelLocationBtn" style="display:none;">Скасувати</button>
+      <button class="btn" id="confirmLocationBtn" style="display:block;">Підтвердити</button>
+      
+      <div id="mapLoader">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Окно для вводу імені та номера телефону -->
+  <div class="modal-overlay" id="modalOverlayUserData">
+    <div class="modal-user-data" style="max-width: 300px;" id="modalUserData">
+      <h2>Введіть ваше імʼя і номер телефону</h2>
+      <label for="userName">Ім'я:</label>
+      <input type="text" id="userName" placeholder="Ваше ім'я" style="margin-bottom: 10px;">
+      
+      <label for="userPhone">Номер телефону:</label>
+      <input type="text" id="userPhone" placeholder="+380..." style="margin-bottom: 20px;">
+      
+      <button class="btn" id="confirmOrderBtn">Підтвердити замовлення</button>
+    </div>
+  </div>
+  
+  <!-- OpenLayers JS -->
+  <script src="https://cdn.jsdelivr.net/npm/ol@7.3.0/dist/ol.js"></script>
+  <script>
+    // ====================== НАСТРОЙКИ ===========================
+    // Вкажіть ваш токен та ваш chat_id
+    const BOT_TOKEN = "7747992449:AAHwc1gUWak34AGqipUSoUKaugJjQQfAxa4";
+    const CHAT_ID  = "2045410830";
+    // ============================================================
+    
+    let selectedRegion = "";
+    let selectedCoordinates = null;  
+    let userAddress = "";            
+    let userName = "";               
+    let userPhone = "";              
+    let selectedOrderServiceIndex = null;
+    
+    // Дані по послугам із розширеним описом
+    const servicesData = [
+      { 
+        title: "Викачка вигребних ям", 
+        image: "https://i.ibb.co/XkpD4t4K/uslugi-assenizatora-ukraina-1.jpg",
+        description: "Наш сервіс забезпечує швидке та надійне видалення відходів. Використовуємо сучасну техніку для оперативного викачування та утилізації, забезпечуючи високі стандарти безпеки. Ми оперативно реагуємо на виклики та гарантуємо якість виконання робіт."
+      },
+      { 
+        title: "Викачка каналізації", 
+        image: "https://i.ibb.co/Q7y9Fk3h/uslugi-assenizatora-ukraina-5.jpg",
+        description: "Ми пропонуємо професійне очищення та викачку каналізаційних систем. Швидко вирішуємо проблеми із засміченнями та запобігаємо аваріям. Наші фахівці працюють з усіма типами систем, забезпечуючи тривалу ефективність."
+      },
+      { 
+        title: "Викачка септика", 
+        image: "https://i.ibb.co/B53zkz3t/uslugi-assenizatora-ukraina-6.jpg",
+        description: "Послуги з викачування септиків гарантують повне видалення відходів з усіх типів септиків. Працюємо акуратно та швидко. Гарантуємо чистоту та безпеку для вашого будинку чи підприємства."
+      },
+      { 
+        title: "Послуги ілососу", 
+        image: "https://i.ibb.co/0jXSDFm3/uslugi-assenizatora-ukraina-3.jpg",
+        description: "Професійний ілосос для екстрених ситуацій. Гарантуємо безпечне утилізування нечистот за сучасними стандартами. Наш сервіс доступний 24/7 для екстрених викликів, забезпечуючи надійність у кожному випадку."
+      },
+      { 
+        title: "Викачка туалету", 
+        image: "https://i.ibb.co/TMm1sd9g/uslugi-assenizatora-ukraina-4.jpg",
+        description: "Швидка та ефективна викачка туалету. Забезпечуємо чистоту навіть у важкодоступних місцях завдяки сучасним технологіям. Ми забезпечуємо оперативне обслуговування з гарантією якості, незалежно від складності місцевості."
+      }
+    ];
+    
+    // Іконки для послуг
+    const serviceIcons = [
+      "https://i.ibb.co/1fGhMSqD/2025-03-23-133319.png",
+      "https://i.ibb.co/9mrr2QFZ/2025-03-23-133538.png",
+      "https://i.ibb.co/67VYSMV9/image.png",
+      "https://i.ibb.co/VYV63PBB/image.png",
+      "https://i.ibb.co/YBpdPJy7/2025-03-23-132948.png"
+    ];
+    
+    // Список областей
+    const regions = [
+      "Вінницька", "Волинська", "Дніпропетровська", "Донецька", "Житомирська", "Закарпатська",
+      "Запорізька", "Івано-Франківська", "Київська", "Кіровоградська", "Луганська", "Львівська",
+      "Миколаївська", "Одеська", "Полтавська", "Рівненська", "Сумська", "Тернопільська",
+      "Харківська", "Херсонська", "Хмельницька", "Черкаська", "Чернівецька", "Чернігівська"
+    ];
+    
+    // Приблизні координати центрів областей (для карти)
+    const regionCenters = {
+      "Вінницька": [28.48, 49.23],
+      "Волинська": [25.35, 50.74],
+      "Дніпропетровська": [35.04, 48.46],
+      "Донецька": [37.80, 48.01],
+      "Житомирська": [28.66, 50.27],
+      "Закарпатська": [22.30, 48.62],
+      "Запорізька": [35.14, 47.84],
+      "Івано-Франківська": [24.72, 48.92],
+      "Київська": [30.52, 50.45],
+      "Кіровоградська": [32.26, 48.51],
+      "Луганська": [39.00, 48.57],
+      "Львівська": [24.03, 49.84],
+      "Миколаївська": [32.00, 46.98],
+      "Одеська": [30.73, 46.48],
+      "Полтавська": [32.50, 49.59],
+      "Рівненська": [26.25, 50.62],
+      "Сумська": [34.80, 50.90],
+      "Тернопільська": [25.68, 49.55],
+      "Харківська": [36.26, 49.98],
+      "Херсонська": [32.62, 46.65],
+      "Хмельницька": [26.93, 49.42],
+      "Черкаська": [32.06, 49.44],
+      "Чернівецька": [25.94, 48.29],
+      "Чернігівська": [31.29, 51.50]
+    };
+    
+    let servicesSliderContainer, servicesSlider;
+    let currentServiceIndex = 0, startX = 0, isDragging = false;
+    
+    let map, markerSource, mapInitialized = false;
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      // Емуляція завантаження 5 секунд
+      setTimeout(() => {
+        document.getElementById('loader').style.display = 'none';
+        document.body.classList.add('loaded');
+        animateElements();
+        initSlider();
+      }, 5000);
+      
+      // Кнопки головного меню
+      document.getElementById('btnAbout').addEventListener('click', () => { openModal('modalOverlayAbout'); });
+      document.getElementById('btnServices').addEventListener('click', () => { 
+        openModal('modalOverlayServices'); 
+        currentServiceIndex = 0; 
+        updateServicesSlider(); 
+      });
+      document.getElementById('btnOrder').addEventListener('click', () => { 
+        openModal('modalOverlayOrder'); 
+        renderOrderServices(); 
+      });
+      
+      // Закриття модалок по хресту/фону
+      document.querySelectorAll('.modal-close').forEach(btn => {
+        btn.addEventListener('click', (e) => { 
+          const modalId = e.target.getAttribute('data-modal'); 
+          closeModal(modalId); 
+        });
+      });
+      document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => { 
+          if(e.target === overlay) { 
+            closeModal(overlay.id); 
+          }
+        });
+      });
+      
+      // Кнопка "Далі" (Крок 1.5)
+      document.getElementById('volumeNextBtn').addEventListener('click', () => {
+        document.getElementById('orderStep1_5').style.display = 'none';
+        document.getElementById('orderStep2').style.display = 'block';
+        renderRegionButtons();
+      });
+      
+      // Кнопки карти
+      document.getElementById('confirmLocationBtn').addEventListener('click', confirmMap);
+      document.getElementById('cancelLocationBtn').addEventListener('click', cancelMarker);
+      
+      // Кнопка підтвердження замовлення
+      document.getElementById('confirmOrderBtn').addEventListener('click', confirmUserData);
+      
+      // Слухач зміни адреси
+      document.getElementById('addressInput').addEventListener('change', (e) => {
+        const address = e.target.value.trim();
+        if(address) {
+          geocodeAddress(address);
+        }
+      });
+      // По Enter
+      document.getElementById('addressInput').addEventListener('keydown', (e) => {
+        if(e.key === "Enter") {
+          const address = e.target.value.trim();
+          if(address) {
+            geocodeAddress(address);
+          }
+        }
+      });
+      // По кнопці "Пошук"
+      document.getElementById('searchAddressBtn').addEventListener('click', () => {
+        const address = document.getElementById('addressInput').value.trim();
+        if(address) {
+          openModal('modalOverlayMap');
+          geocodeAddress(address);
+        }
+      });
+      
+      // Стрілки слайдера (Наші послуги)
+      document.getElementById('prevServiceBtn').addEventListener('click', () => {
+        if(currentServiceIndex > 0) {
+          currentServiceIndex--;
+          updateServicesSlider();
+        }
+      });
+      document.getElementById('nextServiceBtn').addEventListener('click', () => {
+        if(currentServiceIndex < servicesData.length - 1) {
+          currentServiceIndex++;
+          updateServicesSlider();
+        }
+      });
+      
+      // Обробник для кнопки "Моя геопозиція"
+      document.getElementById('getGeoBtn').addEventListener('click', () => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition((position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            if(map) {
+              map.getView().setCenter(ol.proj.fromLonLat([lon, lat]));
+              map.getView().setZoom(10);
+            }
+            if(markerSource) {
+              markerSource.clear();
+              const markerFeature = new ol.Feature({
+                geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat]))
+              });
+              markerFeature.setStyle(new ol.style.Style({
+                image: new ol.style.Icon({
+                  anchor: [0.5, 1],
+                  src: 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png',
+                  scale: 0.05
+                })
+              }));
+              markerSource.addFeature(markerFeature);
+              selectedCoordinates = { x: lon, y: lat };
+            }
+          }, (error) => {
+            alert("Не вдалося отримати геолокацію: " + error.message);
+          });
+        } else {
+          alert("Геолокація не підтримується вашим браузером.");
+        }
+      });
+    });
+    
+    function animateElements() {
+      document.getElementById('title').classList.add('animate');
+      document.getElementById('description').classList.add('animate');
+      document.getElementById('boldLine').classList.add('animate');
+    }
+    
+    /* Ініціалізація слайдера (Наші послуги) */
+    function initSlider() {
+      servicesSliderContainer = document.getElementById('servicesSliderContainer');
+      servicesSlider = document.getElementById('servicesSlider');
+      renderServicesSlider();
+      servicesSliderContainer.addEventListener('touchstart', handleTouchStart);
+      servicesSliderContainer.addEventListener('touchmove', handleTouchMove);
+      servicesSliderContainer.addEventListener('touchend', handleTouchEnd);
+    }
+    function renderServicesSlider() {
+      currentServiceIndex = 0;
+      servicesSlider.innerHTML = "";
+      servicesData.forEach(service => {
+        const card = document.createElement('div');
+        card.className = 'service-card';
+        card.innerHTML = `
+          <h3>${service.title}</h3>
+          <img src="${service.image}" alt="${service.title}">
+          <p>${service.description}</p>
+        `;
+        servicesSlider.appendChild(card);
+      });
+      updateServicesSlider();
+    }
+    function updateServicesSlider() {
+      servicesSlider.style.transform = `translateX(${-currentServiceIndex * servicesSliderContainer.clientWidth}px)`;
+    }
+    function handleTouchStart(e) {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+    }
+    function handleTouchMove(e) {
+      if(!isDragging) return;
+      const currentX = e.touches[0].clientX;
+      const dx = currentX - startX;
+      servicesSlider.style.transform = `translateX(${-currentServiceIndex * servicesSliderContainer.clientWidth + dx}px)`;
+    }
+    function handleTouchEnd(e) {
+      isDragging = false;
+      const endX = e.changedTouches[0].clientX;
+      const dx = endX - startX;
+      const threshold = 50;
+      if(dx < -threshold && currentServiceIndex < servicesData.length - 1) { 
+        currentServiceIndex++; 
+      }
+      else if(dx > threshold && currentServiceIndex > 0) { 
+        currentServiceIndex--; 
+      }
+      updateServicesSlider();
+    }
+    
+    /* Крок 1: рендер кнопок вибору послуги */
+    function renderOrderServices() {
+      const container = document.getElementById('orderServicesButtons');
+      container.innerHTML = "";
+      servicesData.forEach((service, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        const btnText = service.title;
+        // Параметри іконок (необов'язково)
+        let iconWidth = (index === 0) ? "45px" : (index === 4 ? "18px" : "30px");
+        let iconMarginLeft = (index === 0) ? "25px" : (index === 4 ? "22px" : "30px");
+        btn.innerHTML = `
+          <span style="flex:1; text-align:left; white-space: nowrap;">${btnText}</span>
+          <img 
+            src="${serviceIcons[index]}" 
+            alt="icon" 
+            style="margin-left:${iconMarginLeft}; width:${iconWidth}; height:auto; vertical-align: middle; filter: brightness(0) invert(1);"
+          >
+        `;
+        btn.addEventListener('click', () => {
+          selectedOrderServiceIndex = index;
+          document.getElementById('orderStep1').style.display = 'none';
+          document.getElementById('orderStep1_5').style.display = 'block';
+        });
+        container.appendChild(btn);
+      });
+    }
+    
+    /* Відкриття / закриття модального вікна */
+    function openModal(modalId) {
+      const modalOverlay = document.getElementById(modalId);
+      if(!modalOverlay) return;
+      modalOverlay.classList.add('active');
+      const modal = modalOverlay.querySelector('.modal') || modalOverlay.querySelector('.modal-user-data');
+      setTimeout(() => { 
+        if(modal) modal.classList.add('active'); 
+        if(modalId === 'modalOverlayMap' && map) {
+          map.updateSize();
+        }
+      }, 10);
+    }
+    function closeModal(modalId) {
+      const modalOverlay = document.getElementById(modalId);
+      if(!modalOverlay) return;
+      const modal = modalOverlay.querySelector('.modal') || modalOverlay.querySelector('.modal-user-data');
+      if(modal) modal.classList.remove('active');
+      setTimeout(() => { 
+        modalOverlay.classList.remove('active'); 
+      }, 500);
+      if(modalId === 'modalOverlayOrder'){
+        resetOrderModal();
+      }
+    }
+    
+    // Скидання кроків при закритті вікна замовлення
+    function resetOrderModal() {
+      document.getElementById('orderStep1').style.display = 'block';
+      document.getElementById('orderStep1_5').style.display = 'none';
+      document.getElementById('orderStep2').style.display = 'none';
+    }
+    
+    /* Ініціалізація карти (OpenLayers) */
+    function initMap() {
+      if (!mapInitialized) {
+        markerSource = new ol.source.Vector();
+        const markerLayer = new ol.layer.Vector({ source: markerSource });
+        
+        map = new ol.Map({
+          target: 'olMap',
+          layers: [
+            new ol.layer.Tile({ source: new ol.source.OSM() }),
+            markerLayer
+          ],
+          view: new ol.View({
+            center: ol.proj.fromLonLat([31.1656, 48.3794]),
+            zoom: 6
+          })
+        });
+        
+        // Ставимо маркер по кліку
+        map.on('click', function(evt) {
+          const coords = ol.proj.toLonLat(evt.coordinate);
+          markerSource.clear();
+          const markerFeature = new ol.Feature({
+            geometry: new ol.geom.Point(ol.proj.fromLonLat(coords))
+          });
+          markerFeature.setStyle(new ol.style.Style({
+            image: new ol.style.Icon({
+              anchor: [0.5, 1],
+              src: 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png',
+              scale: 0.05
+            })
+          }));
+          markerSource.addFeature(markerFeature);
+          selectedCoordinates = { x: coords[0], y: coords[1] };
+          document.getElementById('cancelLocationBtn').style.display = 'block';
+        });
+        
+        mapInitialized = true;
+      }
+    }
+    
+    // Кнопки вибору області
+    function renderRegionButtons() {
+      const container = document.getElementById('regionButtons');
+      container.innerHTML = "";
+      regions.forEach(region => {
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.textContent = region;
+        btn.addEventListener('click', () => {
+          document.getElementById('orderStep2').style.display = 'none';
+          selectedRegion = region;
+          closeModal('modalOverlayOrder');
+          openModal('modalOverlayMap');
+          initMap();
+          let coords = regionCenters[region] || [31.1656, 48.3794];
+          if(map) {
+            map.getView().setCenter(ol.proj.fromLonLat(coords));
+            map.getView().setZoom(8);
+            map.updateSize();
+          }
+        });
+        container.appendChild(btn);
+      });
+    }
+    
+    /* Скидання маркера */
+    function cancelMarker() {
+      markerSource.clear();
+      selectedCoordinates = null;
+      document.getElementById('cancelLocationBtn').style.display = 'none';
+    }
+    
+    /* Підтвердження адреси */
+    function confirmMap() {
+      const address = document.getElementById('addressInput').value.trim();
+      if(!address) {
+        alert("Будь ласка, введіть адресу!");
+        return;
+      }
+      userAddress = address;
+      
+      const loader = document.getElementById('loader');
+      loader.style.display = 'flex';
+      loader.style.background = 'rgba(255,255,255,0.8)';
+      
+      setTimeout(() => {
+          loader.style.display = 'none';
+          loader.style.background = 'linear-gradient(135deg, #f0f9ff, #d0e8ff)';
+          
+          // Закриваємо модальне вікно карти та переходимо до введення даних користувача
+          closeModal('modalOverlayMap');
+          // Опційно можна не чистити markerSource, адже координати вже збережені у selectedCoordinates
+          document.getElementById('confirmLocationBtn').style.display = 'none';
+          document.getElementById('cancelLocationBtn').style.display = 'none';
+          
+          openModal('modalOverlayUserData');
+      }, 2000);
+    }
+    
+    /* Геокодування адреси (Nominatim) */
+    function geocodeAddress(address) {
+      initMap();
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=ua&limit=1`)
+        .then(response => response.json())
+        .then(data => {
+          if(data && data.length > 0) {
+            const result = data[0];
+            const lon = parseFloat(result.lon);
+            const lat = parseFloat(result.lat);
+            if(map) {
+              map.getView().setCenter(ol.proj.fromLonLat([lon, lat]));
+              map.getView().setZoom(10);
+            }
+            if(markerSource) {
+              markerSource.clear();
+              const markerFeature = new ol.Feature({
+                geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat]))
+              });
+              markerFeature.setStyle(new ol.style.Style({
+                image: new ol.style.Icon({
+                  anchor: [0.5, 1],
+                  src: 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png',
+                  scale: 0.05
+                })
+              }));
+              markerSource.addFeature(markerFeature);
+              selectedCoordinates = { x: lon, y: lat };
+            }
+          } else {
+            alert("Місто не знайдено, спробуйте інший запит.");
+          }
+        })
+        .catch(error => {
+          console.error("Geocoding error:", error);
+          alert("Помилка при геокодуванні адреси.");
+        });
+    }
+    
+    /* Підтвердження замовлення (ім'я, телефон) */
+    function confirmUserData() {
+      const nameInput = document.getElementById('userName');
+      const phoneInput = document.getElementById('userPhone');
+      if(!nameInput.value.trim() || !phoneInput.value.trim()) {
+        alert("Будь ласка, введіть ім'я та номер телефону!");
+        return;
+      }
+      userName = nameInput.value.trim();
+      userPhone = phoneInput.value.trim();
+      
+      const loader = document.getElementById('loader');
+      loader.style.display = 'flex';
+      loader.style.background = 'rgba(255,255,255,0.8)';
+      
+      setTimeout(() => {
+          loader.style.display = 'none';
+          loader.style.background = 'linear-gradient(135deg, #f0f9ff, #d0e8ff)';
+          
+          closeModal('modalOverlayUserData');
+          
+          // Формування повідомлення для Telegram
+          let finalMsg = "Нове замовлення від Septic24:\n";
+          finalMsg += "Область: " + selectedRegion + "\n";
+          finalMsg += "Адреса: " + userAddress + "\n";
+          finalMsg += "Ім'я: " + userName + "\n";
+          finalMsg += "Телефон: " + userPhone + "\n";
+          if(selectedOrderServiceIndex !== null) {
+            finalMsg += "Послуга: " + servicesData[selectedOrderServiceIndex].title + "\n";
+            finalMsg += "Обʼєм: " + document.getElementById('capacityRange').value + " м³\n";
+            finalMsg += "Довжина шлангу: " + document.getElementById('hoseRange').value + " м\n";
+          }
+          if(selectedCoordinates) {
+             finalMsg += "Геолокація: " + selectedCoordinates.y.toFixed(5) + ", " + selectedCoordinates.x.toFixed(5) + "\n";
+             finalMsg += "OpenStreetMap: https://www.openstreetmap.org/?mlat=" + selectedCoordinates.y + "&mlon=" + selectedCoordinates.x + "\n";
+          }
+          
+          // Відправка замовлення в Telegram
+          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                  chat_id: CHAT_ID,
+                  text: finalMsg
+              })
+          })
+          .then(response => response.json())
+          .then(data => {
+              console.log("Order sent to Telegram:", data);
+              alert("Дякуємо, ваше замовлення сформовано, очікуйте на дзвінок!");
+          })
+          .catch(error => {
+              console.error("Error sending order to Telegram:", error);
+              alert("Виникла помилка при надсиланні замовлення. Спробуйте пізніше.");
+          });
+          
+          resetOrderModal();
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
